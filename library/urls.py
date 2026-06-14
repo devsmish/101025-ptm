@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework.routers import SimpleRouter, DefaultRouter
 
 
-from library.views import book_list_create
+from library.views import book_list_view, book_list_create, BookDetailAPIView
 from library.class_views import (
     BookListCreateAPIView,
     BookRetrieveUpdateDestroyAPIView,
@@ -25,7 +25,6 @@ router.register('publishers', PublisherViewSet)
 
 # api/v1/books/
 urlpatterns = [
-    # path('books/', book_list_create),
     # path('books/', BookListCreateAPIView.as_view()),
     path('books/', BookListGenericView.as_view()),
     path('books/<int:pk>/', BookRetrieveUpdateDestroyAPIView.as_view()),
@@ -33,13 +32,17 @@ urlpatterns = [
     path('categories/<str:name>/', CategoryRetrieveUpdateDestroyGenericView.as_view()),
     path('authors/', AuthorListCreateGenericView.as_view()),
     path('users/', UserListGenericView.as_view()),
+    # path('books/', book_list_view),
+    # CRUD - 4
+    # path('books/', book_list_create), # read all, create
+    path('books/', BookListCreateAPIView.as_view(), name='book-list'),
+    # path('books/<int:pk>/', book_read_update_delete), # read id, update id, delete id
+    path('books/<int:pk>/', BookDetailAPIView.as_view()), # read id, update id, delete id
 ]
 
 
 # print(router.urls)
 urlpatterns += router.urls
-
-
 
 
 # PK = 1234

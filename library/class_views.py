@@ -20,7 +20,7 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
 
-from library.serializers import (
+from library.class_serializers import (
     BookListSerializer,
     BookCreateUpdateSerializer,
     BookDetailSerializer,

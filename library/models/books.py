@@ -1,6 +1,9 @@
-from django.core.validators import MaxValueValidator
+from decimal import Decimal
+
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
+from library.models.genres import Genre
 
 
 class Book(models.Model):
@@ -58,3 +61,10 @@ class Book(models.Model):
         related_name='books',
     )
     published_date = models.DateField(default=timezone.now)
+    genres = models.ManyToManyField(Genre, related_name='books')
+
+
+    created_at = models.DateTimeField(null=True, blank=True)
+    # created_at = models.DateTimeField(auto_now_add=True)
+    # updated_at = models.DateTimeField(auto_now=True)
+    # sort = models.PositiveSmallIntegerField(default=0)

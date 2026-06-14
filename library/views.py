@@ -1,11 +1,14 @@
-from rest_framework.decorators import api_view
-from rest_framework.generics import get_object_or_404
-from rest_framework.response import Response
-from rest_framework.request import Request
-from rest_framework import status
+from django.shortcuts import get_object_or_404
 
-from library.serializers import BookListSerializer, BookCreateUpdateSerializer
+from rest_framework.decorators import api_view
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, generics
+
+from library.serializers.books import BookListSerializer
 from library.models import Book
+
+
 
 
 @api_view(['GET',])
@@ -30,78 +33,96 @@ def book_list_view(request):
     )
 
 
-@api_view(['GET', 'POST',])
-def book_list_create(request: Request):
+@api_view(['GET', 'POST'])
+def book_list_create(request):
     if request.method == 'GET':
-        books = Book.objects.all()  # -> [Book(1), ..., Book(1000)]
+        books = Book.objects.all()
         serializer = BookListSerializer(books, many=True)
         return Response(
-            data=serializer.data,  # -> [{'id', 1}, ..., {'id': 1000}]
+            data=serializer.data,
             status=status.HTTP_200_OK
         )
-    elif request.method == 'POST':
-        data = request.data  # {'name': "...", ...}
-        serializer = BookCreateUpdateSerializer(data=data)
-
-        if not serializer.is_valid():
+    if request.method == 'POST':
+        serializer = BookListSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
             return Response(
-                data=serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
+                data=serializer.data,
+                status=status.HTTP_201_CREATED
             )
-
-        serializer.save()
-
         return Response(
-            data=serializer.data,
-            status=status.HTTP_201_CREATED
-        )
-
-
-@api_view(['PUT',])
-def book_update(request: Request, pk: int):
-    try:
-        book = Book.objects.get(pk=pk)
-    except Book.DoesNotExist as err:
-        return Response(
-            data=str(err),
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    # book = get_object_or_404(Book, pk)
-
-    # Book.MultipleObjectsReturned
-    # Book.DoesNotExist
-
-    data = request.data  # {'name': "...", ...}
-    serializer = BookCreateUpdateSerializer(instance=book, data=data)
-
-    if not serializer.is_valid():
-        return Response(
-            data=serializer.errors,
+            serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    serializer.save()
 
-    return Response(
-        data=serializer.data,
-        status=status.HTTP_200_OK
-    )
+@api_view(['GET', 'PUT', 'DELETE'])
+def book_read_update_delete(request, pk):
+    # try:
+    #     book = Book.objects.get(pk=pk)
+    # except Book.DoesNotExist:
+    #     return Response(
+    #         status=status.HTTP_404_NOT_FOUND
+    #     )
 
+    book = get_object_or_404(Book, pk=pk)
 
-@api_view(['DELETE',])
-def book_update(request: Request, pk: int):
-    try:
-        book = Book.objects.get(pk=pk)
-    except Book.DoesNotExist as err:
+    if request.method == 'GET':
+        serializer = BookListSerializer(book)
         return Response(
-            data=str(err),
-            status=status.HTTP_404_NOT_FOUND
+            data=serializer.data,
+            status=status.HTTP_200_OK
+        )
+    if request.method == 'PUT':
+        serializer = BookListSerializer(book, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                data=serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
         )
 
-    book.delete()
+    if request.method == 'DELETE':
+        book.delete()
+        return Response(
+            {'message': 'Book deleted', },
+            status=status.HTTP_204_NO_CONTENT
+        )
 
-    return Response(
-        data={},
-        status=status.HTTP_204_NO_CONTENT
-    )
+
+class BookListCreateAPIView(APIView):
+    def get(self, request):
+        books = Book.objects.all()
+        serializer = BookListSerializer(books, many=True)
+
+        return Response(
+                data=serializer.data,
+                status=status.HTTP_200_OK
+            )
+    def post(self, request):
+        serializer = BookListSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                data=serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+class BookDetailAPIView(APIView):
+    def get(self, request, pk):
+        pass
+
+    def put(self, request, pk):
+        pass
+
+    def delete(self, request, pk):
+        pass
